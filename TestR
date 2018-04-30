@@ -1,0 +1,32 @@
+library(corpus)
+
+##main function for spell checking and results are stored into list  
+
+SpellCorrect = function(textfile,drop = stopwords_en,drop_number = TRUE,drop_except = NULL,drop_punct = TRUE,drop_symbol = TRUE, drop_letter = NULL)
+{
+  textlist = text_tokens(textfile,
+                         text_filter(drop = stopwords_en,drop_number = drop_number,drop_except = drop_except,drop_punct = drop_punct,drop_letter = drop_letter,drop_symbol = drop_symbol))
+  terms = unlist(textlist)
+  SpellCorrectlist = lapply(textlist, function(a)unlist(text_tokens(a, stemmer = stem_spellcorrect)))
+  SpellCorrectlist
+}
+
+
+stem_spellcorrect <- function(term) {
+  # if the term is spelled correctly, leave it as-is
+  if (hunspell::hunspell_check(term)) {
+    return(term)
+  }
+  
+  suggestions <- hunspell::hunspell_suggest(term)[[1]]
+  
+  # if hunspell found a suggestion, use the first one
+  if (length(suggestions) > 0) {
+    suggestions[[1]]
+  } else {
+    # otherwise, use the original term
+    term
+  }
+}
+
+SpellCorrect("there are lots of busess late today becuase there is a bus straike happening")
